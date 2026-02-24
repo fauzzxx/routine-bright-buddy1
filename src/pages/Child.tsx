@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Volume2, Play, ChevronLeft, ChevronRight, Video } from "lucide-react";
+import { Volume2, Play, ChevronLeft, ChevronRight, Video, Film } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { requestGenerateAnimation } from "@/integrations/ai/hf";
 import { demoStore } from "@/integrations/demo/store";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -53,6 +54,7 @@ export default function Child() {
   const [showSessionSummary, setShowSessionSummary] = useState(false);
   const [lastPracticeMetrics, setLastPracticeMetrics] = useState<PracticeMetrics | null>(null);
   const [lastEngagementForRoutine, setLastEngagementForRoutine] = useState<number | null>(null);
+  const [loadingRecording, setLoadingRecording] = useState(false);
   const demoMode = (String(import.meta.env.VITE_DEMO_MODE).toLowerCase() === 'true') || !isSupabaseConfigured;
 
   useEffect(() => {
@@ -174,6 +176,35 @@ export default function Child() {
       setShowVideoDialog(true);
     } else {
       toast.info("No video available");
+    }
+  };
+
+  const handleUseRecording = async () => {
+    const routine = routines[currentRoutineIndex];
+    const card = routine?.flashcards?.[currentStep];
+    if (!card) return;
+    setLoadingRecording(true);
+    try {
+      const prompt = `${card.title}. ${card.description}`;
+      const res = await requestGenerateAnimation(prompt);
+      const url = res.video_path;
+      if (!url) {
+        toast.error("No recording found for this step");
+        return;
+      }
+      if (!demoMode) {
+        await supabase.from("flashcards").update({ video_url: url }).eq("id", card.id);
+      }
+      const updatedRoutines = [...routines];
+      const rIdx = currentRoutineIndex;
+      const cIdx = updatedRoutines[rIdx].flashcards.findIndex(f => f.id === card.id);
+      if (cIdx !== -1) updatedRoutines[rIdx].flashcards[cIdx] = { ...card, video_url: url };
+      setRoutines(updatedRoutines);
+      toast.success("Recording attached!");
+    } catch (e: unknown) {
+      toast.error((e as Error)?.message ?? "Could not load recording");
+    } finally {
+      setLoadingRecording(false);
     }
   };
 
@@ -319,7 +350,7 @@ export default function Child() {
                       Read
                     </Button>
 
-                    {currentCard.video_url && (
+                    {currentCard.video_url ? (
                       <Button
                         size="lg"
                         variant="outline"
@@ -328,6 +359,17 @@ export default function Child() {
                       >
                         <Play className="w-5 h-5 sm:w-6 sm:h-6 mr-2 shrink-0" />
                         View
+                      </Button>
+                    ) : (
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        disabled={loadingRecording}
+                        onClick={handleUseRecording}
+                        className="flex-1 min-w-[7rem] rounded-2xl h-14 font-fredoka text-lg shadow-cartoon border-2 border-primary/30 text-primary"
+                      >
+                        <Film className={`w-5 h-5 sm:w-6 sm:h-6 mr-2 shrink-0 ${loadingRecording ? "animate-spin" : ""}`} />
+                        {loadingRecording ? "Loading..." : "Use my recording"}
                       </Button>
                     )}
                     <Button

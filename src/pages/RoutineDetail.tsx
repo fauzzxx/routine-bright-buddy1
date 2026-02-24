@@ -31,6 +31,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { requestGenerateAnimation } from "@/integrations/ai/hf";
+import { Film } from "lucide-react";
 
 interface Flashcard {
   id: string;
@@ -81,6 +83,7 @@ export default function RoutineDetail() {
   const [hdJobId, setHdJobId] = useState<string | null>(null);
   const [hdStatus, setHdStatus] = useState<string | null>(null);
   const [isPollingHd, setIsPollingHd] = useState(false);
+  const [loadingRecordingByCard, setLoadingRecordingByCard] = useState<Record<string, boolean>>({});
   const demoMode = (String(import.meta.env.VITE_DEMO_MODE).toLowerCase() === 'true') || !isSupabaseConfigured;
 
   const daysOfWeek = [
@@ -270,6 +273,34 @@ export default function RoutineDetail() {
     );
   };
 
+  const handleUseRecording = async (fc: Flashcard) => {
+    setLoadingRecordingByCard(prev => ({ ...prev, [fc.id]: true }));
+    try {
+      const prompt = `${fc.title}. ${fc.description}`;
+      const res = await requestGenerateAnimation(prompt);
+      const url = res.video_path;
+      if (!url) {
+        toast.error("No recording found for this step");
+        return;
+      }
+      if (!demoMode) {
+        const { error } = await supabase
+          .from("flashcards")
+          .update({ video_url: url })
+          .eq("id", fc.id);
+        if (error) throw error;
+      }
+      setFlashcards(prev =>
+        prev.map(f => (f.id === fc.id ? { ...f, video_url: url } : f))
+      );
+      toast.success("Recording attached!");
+    } catch (e: unknown) {
+      toast.error((e as Error)?.message ?? "Could not load recording");
+    } finally {
+      setLoadingRecordingByCard(prev => ({ ...prev, [fc.id]: false }));
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -407,6 +438,17 @@ export default function RoutineDetail() {
                               className="w-full"
                             />
                           </div>
+                        )}
+                        {!currentCard.video_url && (
+                          <Button
+                            variant="outline"
+                            className="rounded-2xl h-12 font-fredoka w-full border-2 border-primary/30 text-primary hover:bg-primary/5"
+                            disabled={!!loadingRecordingByCard[currentCard.id]}
+                            onClick={() => handleUseRecording(currentCard)}
+                          >
+                            <Film className={`w-4 h-4 mr-2 ${loadingRecordingByCard[currentCard.id] ? "animate-spin" : ""}`} />
+                            {loadingRecordingByCard[currentCard.id] ? "Loading..." : "Use my recording"}
+                          </Button>
                         )}
                         <Button
                           variant="secondary"
