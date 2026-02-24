@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
@@ -53,11 +53,7 @@ export default function CreateRoutine() {
     { title: "", description: "", icon: "📝" }
   ]);
 
-  useEffect(() => {
-    fetchDefaultRoutines();
-  }, [demoMode]);
-
-  const fetchDefaultRoutines = async () => {
+  const fetchDefaultRoutines = useCallback(async () => {
     // In demo mode, provide some colorful defaults locally
     if (demoMode) {
       const localDefaults: DefaultRoutine[] = [
@@ -122,7 +118,11 @@ export default function CreateRoutine() {
     } catch (error: unknown) {
       console.error("Error fetching default routines:", error);
     }
-  };
+  }, [demoMode]);
+
+  useEffect(() => {
+    fetchDefaultRoutines();
+  }, [fetchDefaultRoutines]);
 
   const addFlashcard = () => {
     setFlashcards([...flashcards, { title: "", description: "", icon: "📝" }]);

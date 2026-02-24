@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,7 @@ export default function Todo() {
     String(import.meta.env.VITE_DEMO_MODE).toLowerCase() === "true" ||
     !isSupabaseConfigured;
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     if (demoMode) {
       setItems(demoTasks.getAll());
@@ -38,11 +38,11 @@ export default function Todo() {
       setItems([]);
     }
     setLoading(false);
-  };
+  }, [demoMode, user?.id]);
 
   useEffect(() => {
     load();
-  }, [demoMode, user?.id]);
+  }, [load]);
 
   const handleAdd = async () => {
     const title = newTitle.trim();

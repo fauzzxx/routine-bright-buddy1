@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -58,9 +58,61 @@ export default function Child() {
   const demoMode = (String(import.meta.env.VITE_DEMO_MODE).toLowerCase() === 'true') || !isSupabaseConfigured;
   const useDemoStore = demoMode || !user;
 
+  const fetchScheduledRoutines = useCallback(async () => {
+    try {
+      if (useDemoStore) {
+        const list = demoStore.getAllScheduledRoutines().length > 0
+          ? demoStore.getAllScheduledRoutines()
+          : demoStore.getAllRoutinesWithFlashcards();
+        const items = list.map(r => ({
+          id: r.id,
+          title: r.title,
+          icon: r.icon,
+          video_url: r.video_url ?? null,
+          flashcards: r.flashcards.map(f => ({
+            id: f.id,
+            step_number: f.step_number,
+            title: f.title,
+            description: f.description,
+            routine_id: f.routine_id,
+            icon: f.icon,
+            image_url: f.image_url ?? undefined,
+            video_url: f.video_url ?? null,
+          })),
+        }));
+        setRoutines(items);
+      } else {
+        const { data: schedules, error: schedulesError } = await supabase
+          .from("routine_schedules")
+          .select(`
+            *,
+            routines(
+              *,
+              flashcards(*)
+            )
+          `)
+          .eq("is_active", true);
+
+        if (schedulesError) throw schedulesError;
+
+        const relevantRoutines = schedules
+          ?.map((s) => s.routines as unknown as Routine)
+          .filter((r) => r && r.flashcards?.length > 0) || [];
+
+        setRoutines(relevantRoutines);
+      }
+    } catch (error: unknown) {
+      const message = (error as Error)?.message || "Failed to load routines";
+      toast.error(message);
+      console.error("Error loading scheduled routines:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [useDemoStore]);
+
   useEffect(() => {
     fetchScheduledRoutines();
-  }, [useDemoStore]);
+  }, [fetchScheduledRoutines]);
 
   const currentRoutineId = routines[currentRoutineIndex]?.id;
   useEffect(() => {
@@ -102,60 +154,6 @@ export default function Child() {
       });
       if ("error" in res) toast.error(res.error);
       else setLastEngagementForRoutine(Math.round((metrics.engagementScore + metrics.motionScore) / 2));
-    }
-  };
-
-  const fetchScheduledRoutines = async () => {
-    try {
-      if (useDemoStore) {
-        const list = demoStore.getAllScheduledRoutines().length > 0
-          ? demoStore.getAllScheduledRoutines()
-          : demoStore.getAllRoutinesWithFlashcards();
-        const items = list.map(r => ({
-          id: r.id,
-          title: r.title,
-          icon: r.icon,
-          video_url: r.video_url ?? null,
-          flashcards: r.flashcards.map(f => ({
-            id: f.id,
-            step_number: f.step_number,
-            title: f.title,
-            description: f.description,
-            routine_id: f.routine_id,
-            icon: f.icon,
-            image_url: f.image_url ?? undefined,
-            video_url: f.video_url ?? null,
-          })),
-        }));
-        setRoutines(items);
-      } else {
-        const currentTime = new Date().toTimeString().slice(0, 5);
-
-        const { data: schedules, error: schedulesError } = await supabase
-          .from("routine_schedules")
-          .select(`
-            *,
-            routines(
-              *,
-              flashcards(*)
-            )
-          `)
-          .eq("is_active", true);
-
-        if (schedulesError) throw schedulesError;
-
-        const relevantRoutines = schedules
-          ?.map((s) => s.routines as unknown as Routine)
-          .filter((r) => r && r.flashcards?.length > 0) || [];
-
-        setRoutines(relevantRoutines);
-      }
-    } catch (error: unknown) {
-      const message = (error as Error)?.message || "Failed to load routines";
-      toast.error(message);
-      console.error("Error loading scheduled routines:", error);
-    } finally {
-      setIsLoading(false);
     }
   };
 

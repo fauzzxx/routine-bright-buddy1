@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
@@ -97,54 +97,7 @@ export default function RoutineDetail() {
     { value: 6, label: "Sat" },
   ];
 
-  useEffect(() => {
-    fetchRoutineData();
-  }, [id, useDemoStore]);
-
-  useEffect(() => {
-    if (!id) {
-      setLastEngagementForRoutine(null);
-      return;
-    }
-    if (useDemoStore) {
-      const last = demoPracticeResults.getLastForRoutine(id);
-      setLastEngagementForRoutine(last?.engagement_score ?? null);
-    } else if (user?.id) {
-      getLastPracticeResultForRoutine(user.id, id).then((r) => {
-        setLastEngagementForRoutine(r?.engagement_score ?? null);
-      });
-    } else {
-      setLastEngagementForRoutine(null);
-    }
-  }, [id, useDemoStore, user?.id]);
-
-  const handlePracticeComplete = async (metrics: PracticeMetrics) => {
-    const currentCard = flashcards[currentStep];
-    setLastPracticeMetrics(metrics);
-    setShowPracticeModal(false);
-    setShowSessionSummary(true);
-    if (useDemoStore) {
-      demoPracticeResults.add(
-        metrics.engagementScore,
-        metrics.motionScore,
-        metrics.responseTimeSec,
-        metrics.totalTimeSec
-      );
-      setLastEngagementForRoutine(Math.round((metrics.engagementScore + metrics.motionScore) / 2));
-    } else if (user?.id && id && currentCard) {
-      const res = await savePracticeResult({
-        userId: user.id,
-        activityType: currentCard.title,
-        flashcardId: currentCard.id,
-        routineId: id,
-        metrics,
-      });
-      if ("error" in res) toast.error(res.error);
-      else setLastEngagementForRoutine(Math.round((metrics.engagementScore + metrics.motionScore) / 2));
-    }
-  };
-
-  const fetchRoutineData = async () => {
+  const fetchRoutineData = useCallback(async () => {
     if (!id) return;
 
     try {
@@ -203,6 +156,53 @@ export default function RoutineDetail() {
       console.error("Error loading routine:", error);
     } finally {
       setIsLoading(false);
+    }
+  }, [id, useDemoStore]);
+
+  useEffect(() => {
+    fetchRoutineData();
+  }, [fetchRoutineData]);
+
+  useEffect(() => {
+    if (!id) {
+      setLastEngagementForRoutine(null);
+      return;
+    }
+    if (useDemoStore) {
+      const last = demoPracticeResults.getLastForRoutine(id);
+      setLastEngagementForRoutine(last?.engagement_score ?? null);
+    } else if (user?.id) {
+      getLastPracticeResultForRoutine(user.id, id).then((r) => {
+        setLastEngagementForRoutine(r?.engagement_score ?? null);
+      });
+    } else {
+      setLastEngagementForRoutine(null);
+    }
+  }, [id, useDemoStore, user?.id]);
+
+  const handlePracticeComplete = async (metrics: PracticeMetrics) => {
+    const currentCard = flashcards[currentStep];
+    setLastPracticeMetrics(metrics);
+    setShowPracticeModal(false);
+    setShowSessionSummary(true);
+    if (useDemoStore) {
+      demoPracticeResults.add(
+        metrics.engagementScore,
+        metrics.motionScore,
+        metrics.responseTimeSec,
+        metrics.totalTimeSec
+      );
+      setLastEngagementForRoutine(Math.round((metrics.engagementScore + metrics.motionScore) / 2));
+    } else if (user?.id && id && currentCard) {
+      const res = await savePracticeResult({
+        userId: user.id,
+        activityType: currentCard.title,
+        flashcardId: currentCard.id,
+        routineId: id,
+        metrics,
+      });
+      if ("error" in res) toast.error(res.error);
+      else setLastEngagementForRoutine(Math.round((metrics.engagementScore + metrics.motionScore) / 2));
     }
   };
 

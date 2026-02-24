@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { format, startOfMonth, endOfMonth, addMonths, subMonths } from "date-fns";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent } from "@/components/ui/card";
@@ -50,25 +50,24 @@ export default function Planner() {
     String(import.meta.env.VITE_DEMO_MODE).toLowerCase() === "true" ||
     !isSupabaseConfigured;
 
-  const from = startOfMonth(month);
-  const to = endOfMonth(month);
-
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
+    const rangeFrom = startOfMonth(month);
+    const rangeTo = endOfMonth(month);
     if (demoMode) {
-      setEvents(demoPlannerEvents.getInRange(from, to));
+      setEvents(demoPlannerEvents.getInRange(rangeFrom, rangeTo));
     } else if (user?.id) {
-      const list = await fetchPlannerEvents(user.id, from, to);
+      const list = await fetchPlannerEvents(user.id, rangeFrom, rangeTo);
       setEvents(list);
     } else {
       setEvents([]);
     }
     setLoading(false);
-  };
+  }, [demoMode, user?.id, month]);
 
   useEffect(() => {
     load();
-  }, [demoMode, user?.id, month.getTime()]);
+  }, [load]);
 
   const handleAdd = async () => {
     const t = title.trim();

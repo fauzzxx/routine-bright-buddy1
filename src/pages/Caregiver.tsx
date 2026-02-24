@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { isSupabaseConfigured } from "@/integrations/supabase/client";
 import { Navigation } from "@/components/Navigation";
@@ -57,7 +57,7 @@ export default function Caregiver() {
   const demoMode = String(import.meta.env.VITE_DEMO_MODE).toLowerCase() === 'true' || !isSupabaseConfigured;
   const [last, prev] = insightSessions;
 
-  const fetchRoutines = async () => {
+  const fetchRoutines = useCallback(async () => {
     try {
       // Use demo store when in demo mode OR when Supabase is configured but user is not signed in
       // (routines added via "Add default routine" without login go to demo store)
@@ -91,11 +91,11 @@ export default function Caregiver() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [demoMode, user]);
 
   useEffect(() => {
     fetchRoutines();
-  }, [user]);
+  }, [fetchRoutines]);
 
   useEffect(() => {
     if (demoMode) {
