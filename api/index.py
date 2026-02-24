@@ -72,15 +72,21 @@ async def generate_animation_endpoint(
     request: Request = None,
 ):
     """
-    Return a video URL: first try pre-recorded MP4s in server/recordings, then fall back to HF/moviepy generation.
+    Return a video URL from pre-recorded MP4s in api/recordings.
+    No AI generation on serverless (avoids FUNCTION_INVOCATION_FAILED).
     """
     try:
         local_path = resolve_recording(prompt, VIDEOS_DIR, filename_prefix="animation")
-        used_recording = local_path is not None
         if not local_path:
-            generate_animation, upload_video_and_get_public_url = _get_animation_deps()
-            local_path = await generate_animation(prompt, out_dir=VIDEOS_DIR)
+            raise HTTPException(
+                status_code=404,
+                detail=(
+                    "No recording found for this step. Add a matching MP4 to api/recordings/ "
+                    "(e.g. wake_up.mp4 or 'waking up.mp4' for 'Wake up'). See api/recordings/README.md."
+                ),
+            )
 
+        used_recording = True
         supabase_url = os.getenv("SUPABASE_URL")
         supabase_key = os.getenv("SUPABASE_SERVICE_KEY")
         enable_upload = os.getenv("ENABLE_SUPABASE_UPLOAD", "false").lower() in ("1", "true", "yes")

@@ -9,63 +9,54 @@ import logging
 
 RECORDINGS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "recordings")
 
-# Preferred: snake_case filenames (brush_teeth.mp4, wake_up.mp4, etc.).
-# Fallbacks: if preferred file is missing, try these (e.g. "brushing your teeth.mp4").
-FALLBACK_FILES = {
-    "brush_teeth.mp4": "brushing your teeth.mp4",
-    "wake_up.mp4": "waking up.mp4",
-    "eating_breakfast.mp4": "Eating breakfast.mp4",
-    "get_dressed.mp4": "changing clothes.mp4",
-    "reading_book.mp4": "reading a book.mp4",
-    "wash_hands.mp4": None,  # no fallback; add wash_hands.mp4 to folder
-    "night_clothes.mp4": "night clothes.mp4",
-}
+# Your exact filenames -> flashcard step. No fallbacks needed.
+# brushing your teeth.mp4 -> brush teeth
+# changing clothes.mp4 -> change clothes
+# Eating breakfast.mp4 -> eat breakfast
+# night clothes.mp4 -> night clothes
+# wakingup.mp4 -> wake up
+# reading a book.mp4 -> read a book
+FALLBACK_FILES = {}
 
-# Keyword (in prompt) -> primary filename in api/recordings. Matches README.
 PROMPT_TO_VIDEO = {
-    # Brush teeth
-    "brushing teeth": "brush_teeth.mp4",
-    "brush teeth": "brush_teeth.mp4",
-    "brush your teeth": "brush_teeth.mp4",
-    "teeth": "brush_teeth.mp4",
-    "brush": "brush_teeth.mp4",
-    "tooth": "brush_teeth.mp4",
-    # Wake up / morning
-    "waking up": "wake_up.mp4",
-    "wake up": "wake_up.mp4",
-    "wake": "wake_up.mp4",
-    "morning": "wake_up.mp4",
-    # Wash hands / face
-    "wash hands": "wash_hands.mp4",
-    "wash face": "wash_hands.mp4",
-    "washing hands": "wash_hands.mp4",
-    "washing face": "wash_hands.mp4",
-    # Get dressed / clothes (morning)
-    "changing clothes": "get_dressed.mp4",
-    "change clothes": "get_dressed.mp4",
-    "get dressed": "get_dressed.mp4",
-    "put on clothes": "get_dressed.mp4",
-    "dress": "get_dressed.mp4",
-    "wear": "get_dressed.mp4",
-    "clothes": "get_dressed.mp4",
-    # Eating
-    "eating breakfast": "eating_breakfast.mp4",
-    "eat breakfast": "eating_breakfast.mp4",
-    "breakfast": "eating_breakfast.mp4",
-    "eat": "eating_breakfast.mp4",
-    "lunch": "eating_breakfast.mp4",
-    "dinner": "eating_breakfast.mp4",
-    # Night clothes / pajamas
-    "night clothes": "night_clothes.mp4",
-    "pajamas": "night_clothes.mp4",
-    "put on pajamas": "night_clothes.mp4",
-    "night": "night_clothes.mp4",
-    # Reading
-    "reading a book": "reading_book.mp4",
-    "read a book": "reading_book.mp4",
-    "read": "reading_book.mp4",
-    "book": "reading_book.mp4",
-    "story": "reading_book.mp4",
+    # Brush teeth -> brushing your teeth.mp4
+    "brushing teeth": "brushing your teeth.mp4",
+    "brush teeth": "brushing your teeth.mp4",
+    "brush your teeth": "brushing your teeth.mp4",
+    "teeth": "brushing your teeth.mp4",
+    "brush": "brushing your teeth.mp4",
+    "tooth": "brushing your teeth.mp4",
+    # Wake up -> wakingup.mp4
+    "waking up": "wakingup.mp4",
+    "wake up": "wakingup.mp4",
+    "wake": "wakingup.mp4",
+    "morning": "wakingup.mp4",
+    # Change clothes -> changing clothes.mp4
+    "changing clothes": "changing clothes.mp4",
+    "change clothes": "changing clothes.mp4",
+    "get dressed": "changing clothes.mp4",
+    "put on clothes": "changing clothes.mp4",
+    "dress": "changing clothes.mp4",
+    "wear": "changing clothes.mp4",
+    "clothes": "changing clothes.mp4",
+    # Eat breakfast -> Eating breakfast.mp4
+    "eating breakfast": "Eating breakfast.mp4",
+    "eat breakfast": "Eating breakfast.mp4",
+    "breakfast": "Eating breakfast.mp4",
+    "eat": "Eating breakfast.mp4",
+    "lunch": "Eating breakfast.mp4",
+    "dinner": "Eating breakfast.mp4",
+    # Night clothes -> night clothes.mp4
+    "night clothes": "night clothes.mp4",
+    "pajamas": "night clothes.mp4",
+    "put on pajamas": "night clothes.mp4",
+    "night": "night clothes.mp4",
+    # Read a book -> reading a book.mp4
+    "reading a book": "reading a book.mp4",
+    "read a book": "reading a book.mp4",
+    "read": "reading a book.mp4",
+    "book": "reading a book.mp4",
+    "story": "reading a book.mp4",
 }
 
 
