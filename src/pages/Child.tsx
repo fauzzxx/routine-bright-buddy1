@@ -1,3 +1,4 @@
+// Version: 1.0.1 - Forced build
 import { useState, useEffect, useCallback } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent } from "@/components/ui/card";
