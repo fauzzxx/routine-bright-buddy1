@@ -58,7 +58,9 @@ Step-by-step routines (Morning, Bedtime) can show your own MP4 recordings instea
    The app will proxy `/api` to the backend on port 8000. Open the app, add a routine from the library, open it, and click **"Use my recording"** on a step to attach the matching video.
 
 4. **Deploying (e.g. Vercel)**  
-   Commit your MP4 files in `api/recordings/` (e.g. `waking up.mp4`, `brushing your teeth.mp4`) so they are deployed with the serverless API. The API only serves these recordings (no AI generation in production), so "Use my recording" will work if the files are present and step titles match. If you see "No recording found", add a matching file and redeploy.
+   - Commit your MP4 files in `api/recordings/` (e.g. `wakingup.mp4`, `brushing your teeth.mp4`, `night clothes.mp4`) so they are deployed with the API.
+   - The API uses **only** these recordings (no moviepy/HuggingFace), so "Use my recording" works without FUNCTION_INVOCATION_FAILED.
+   - After pulling these changes, **redeploy** so the lightweight API and your recordings are live. If you see "No recording found", add the matching file and redeploy.
 
 **Edit a file directly in GitHub**
 

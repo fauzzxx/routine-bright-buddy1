@@ -63,40 +63,47 @@ PROMPT_TO_VIDEO = {
 def resolve_recording(prompt: str, out_dir: str, filename_prefix: str = "animation") -> str | None:
     """
     If a matching MP4 exists in api/recordings, copy it to out_dir and return the destination path.
-    Otherwise return None (caller can fall back to HF/moviepy).
+    Returns None if no match or any error (serverless-safe).
     """
-    if not os.path.isdir(RECORDINGS_DIR):
-        os.makedirs(RECORDINGS_DIR, exist_ok=True)
-        return None
-
-    prompt_lower = prompt.lower().strip()
-    matched_file = None
-
-    # 1) Explicit keyword mapping (longer phrases first); try primary then fallback filename
-    for keyword, video_file in sorted(PROMPT_TO_VIDEO.items(), key=lambda x: -len(x[0])):
-        if keyword in prompt_lower:
-            candidate = os.path.join(RECORDINGS_DIR, video_file)
-            if os.path.isfile(candidate):
-                matched_file = video_file
-                break
-            fallback = FALLBACK_FILES.get(video_file)
-            if fallback:
-                candidate_fb = os.path.join(RECORDINGS_DIR, fallback)
-                if os.path.isfile(candidate_fb):
-                    matched_file = fallback
-                    break
-    if matched_file:
-        src = os.path.join(RECORDINGS_DIR, matched_file)
-        ts = int(time.time())
-        safe = "".join(c for c in prompt_lower if c.isalnum() or c in ("-", "_"))[:40]
-        dest_name = f"{filename_prefix}-{safe}-{ts}.mp4"
-        dest_path = os.path.join(out_dir, dest_name)
-        shutil.copy2(src, dest_path)
-        logging.info("Serving recording: %s -> %s", src, dest_path)
-        return dest_path
-
-    # 2) Scan recordings folder: match by filename (e.g. brush_teeth.mp4 <-> "brush teeth")
     try:
+        if not prompt or not isinstance(prompt, str):
+            return None
+        if not os.path.isdir(RECORDINGS_DIR):
+            try:
+                os.makedirs(RECORDINGS_DIR, exist_ok=True)
+            except OSError:
+                pass
+            return None
+
+        prompt_lower = prompt.lower().strip()
+        matched_file = None
+
+        for keyword, video_file in sorted(PROMPT_TO_VIDEO.items(), key=lambda x: -len(x[0])):
+            if keyword in prompt_lower:
+                candidate = os.path.join(RECORDINGS_DIR, video_file)
+                if os.path.isfile(candidate):
+                    matched_file = video_file
+                    break
+                fallback = FALLBACK_FILES.get(video_file)
+                if fallback:
+                    candidate_fb = os.path.join(RECORDINGS_DIR, fallback)
+                    if os.path.isfile(candidate_fb):
+                        matched_file = fallback
+                        break
+        if matched_file:
+            src = os.path.join(RECORDINGS_DIR, matched_file)
+            ts = int(time.time())
+            safe = "".join(c for c in prompt_lower if c.isalnum() or c in ("-", "_"))[:40]
+            dest_name = f"{filename_prefix}-{safe}-{ts}.mp4"
+            dest_path = os.path.join(out_dir, dest_name)
+            try:
+                os.makedirs(out_dir, exist_ok=True)
+            except OSError:
+                pass
+            shutil.copy2(src, dest_path)
+            logging.info("Serving recording: %s -> %s", src, dest_path)
+            return dest_path
+
         for fname in os.listdir(RECORDINGS_DIR):
             if not fname.lower().endswith(".mp4"):
                 continue
@@ -108,10 +115,15 @@ def resolve_recording(prompt: str, out_dir: str, filename_prefix: str = "animati
                     safe = "".join(c for c in prompt_lower if c.isalnum() or c in ("-", "_"))[:40]
                     dest_name = f"{filename_prefix}-{safe}-{ts}.mp4"
                     dest_path = os.path.join(out_dir, dest_name)
+                    try:
+                        os.makedirs(out_dir, exist_ok=True)
+                    except OSError:
+                        pass
                     shutil.copy2(src, dest_path)
                     logging.info("Serving recording (scan): %s -> %s", src, dest_path)
                     return dest_path
     except OSError as e:
-        logging.warning("Recordings scan failed: %s", e)
-
+        logging.warning("Recordings resolve failed: %s", e)
+    except Exception as e:
+        logging.warning("Recordings resolve error: %s", e)
     return None
