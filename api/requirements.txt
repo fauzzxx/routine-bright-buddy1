@@ -1,5 +1,3 @@
-# Minimal deps for recordings-only API (Vercel serverless).
-# No moviepy/HuggingFace - avoids FUNCTION_INVOCATION_FAILED and timeouts.
-fastapi>=0.115.0
-mangum>=0.17.0
 python-dotenv>=1.0.0
+fastapi
+mangum

@@ -74,6 +74,21 @@ export default function CreateRoutine() {
           ],
         },
         {
+          id: "demo-daily-essentials",
+          title: "Daily Essential Routine",
+          category: "Mastery",
+          icon: "🌟",
+          description: "All the key tasks for a perfect day",
+          flashcards: [
+            { title: "Wake up", description: "Open your eyes and sit up in bed", icon: "⏰" },
+            { title: "Brush teeth flashcard", description: "Use your toothbrush and toothpaste", icon: "🪥" },
+            { title: "Change clothes", description: "Put on your favorite outfit", icon: "👕" },
+            { title: "Eat breakfast", description: "Enjoy a healthy meal", icon: "🍳" },
+            { title: "Read a book", description: "Pick a fun story to read", icon: "📚" },
+            { title: "Night clothes", description: "Get ready for a good sleep", icon: "🌙" },
+          ],
+        },
+        {
           id: "demo-bedtime",
           title: "Bedtime Routine",
           category: "Daily",
@@ -141,13 +156,13 @@ export default function CreateRoutine() {
           .slice(0, 8);
         const generated: Flashcard[] = parts.length
           ? parts.map((p, i) => {
-              const short = p.length > 32 ? p.slice(0, 29) + "…" : p;
-              return {
-                title: short,
-                description: `Step ${i + 1}: ${p}`,
-                icon: ["⏰", "🪥", "👕", "🍳", "📚", "🛌", "✨", "🌟"][i] ?? "✨",
-              };
-            })
+            const short = p.length > 32 ? p.slice(0, 29) + "…" : p;
+            return {
+              title: short,
+              description: `Step ${i + 1}: ${p}`,
+              icon: ["⏰", "🪥", "👕", "🍳", "📚", "🛌", "✨", "🌟"][i] ?? "✨",
+            };
+          })
           : [
             { title: "Step 1", description: "Describe the first step", icon: "✨" },
             { title: "Step 2", description: "Describe the second step", icon: "✨" },

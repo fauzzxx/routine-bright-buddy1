@@ -374,7 +374,7 @@ export default function Child() {
                         className="flex-1 min-w-[7rem] rounded-2xl h-14 font-fredoka text-lg shadow-cartoon border-2 border-primary/30 text-primary"
                       >
                         <Film className={`w-5 h-5 sm:w-6 sm:h-6 mr-2 shrink-0 ${loadingRecording ? "animate-spin" : ""}`} />
-                        {loadingRecording ? "Loading..." : "Use my recording"}
+                        {loadingRecording ? "Loading..." : "generate ai video"}
                       </Button>
                     )}
                     <Button

@@ -47,7 +47,7 @@ Step-by-step routines (Morning, Bedtime) can show your own MP4 recordings instea
    ```sh
    cd api
    pip install -r requirements.txt
-   uvicorn index:parent --reload --host 0.0.0.0 --port 8000
+   uvicorn index:app --reload --host 0.0.0.0 --port 8000
    ```
    Keep this running in a separate terminal.
 
