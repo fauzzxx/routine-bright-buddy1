@@ -1,0 +1,235 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 210 50% 98%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Kid-Friendly Vibrant Colors */
+    --primary: 262 70% 50%;
+    /* Deep Purple (from Image 3) */
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 25 95% 55%;
+    /* Bright Orange (from Image 1) */
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 185 85% 45%;
+    /* Vibrant Teal (from Image 2) */
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 262 70% 50%;
+
+    --radius: 2rem;
+    /* Much rounder for kids */
+
+    /* Vibrant KID-FRIENDLY gradients */
+    --gradient-primary: linear-gradient(135deg, #7C3AED, #A78BFA);
+    --gradient-secondary: linear-gradient(135deg, #F97316, #FB923C);
+    --gradient-accent: linear-gradient(135deg, #0D9488, #2DD4BF);
+    --gradient-sun: linear-gradient(135deg, #FBBF24, #F59E0B);
+
+    /* Thick playful shadows */
+    --shadow-cartoon: 0 8px 0px rgba(0, 0, 0, 0.1);
+    --shadow-vibrant: 0 20px 25px -5px rgba(124, 58, 237, 0.2);
+
+    --transition-smooth: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .dark {
+    --background: 262 30% 10%;
+    --foreground: 210 40% 98%;
+    --card: 262 30% 15%;
+    --card-foreground: 210 40% 98%;
+    --primary: 262 70% 60%;
+    --accent: 185 85% 55%;
+    --border: 262 30% 20%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-inter antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Fredoka', sans-serif;
+    @apply font-semibold tracking-tight;
+  }
+}
+
+@layer utilities {
+  .story-link {
+    @apply relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left;
+  }
+
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-105;
+  }
+
+  .animate-slide-in-up {
+    @apply animate-fade-in-up;
+  }
+
+  .animate-slide-in-down {
+    @apply animate-fade-in-down;
+  }
+
+  .animate-slide-in-left {
+    @apply animate-fade-in-up;
+    /* Simplified to fade-in-up for consistency */
+  }
+
+  .animate-bounce-in {
+    @apply animate-scale-in;
+  }
+
+  .animate-pulse-slow {
+    @apply animate-pulse-glow;
+  }
+
+  .animate-float {
+    @apply animate-float-slow;
+  }
+
+  .animate-wiggle {
+    animation: wiggle 1s ease-in-out infinite;
+  }
+
+  /* Glassmorphism card effect */
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.6) 100%);
+  }
+
+  .dark .glass-card {
+    @apply bg-black/60 backdrop-blur-md border border-white/10 shadow-xl;
+    background: linear-gradient(135deg, rgba(30, 30, 30, 0.9) 0%, rgba(30, 30, 30, 0.6) 100%);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+
+  70% {
+    transform: scale(0.9);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes wiggle {
+
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  25% {
+    transform: rotate(-5deg);
+  }
+
+  75% {
+    transform: rotate(5deg);
+  }
+}

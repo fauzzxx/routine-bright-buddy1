@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animation Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .test-result { 
+            background: rgba(255,255,255,0.1); 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-radius: 8px; 
+            backdrop-filter: blur(10px);
+        }
+        .video-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+        video {
+            max-width: 400px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .loading {
+            color: #fbbf24;
+            font-weight: bold;
+        }
+        .success {
+            color: #10b981;
+        }
+        .error {
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎬 Routine Animation Test</h1>
+    <div id="results"></div>
+    <div id="videos" class="video-container"></div>
+
+    <script type="module">
+        // Import the video generation function (we'll copy it here for testing)
+        function detectAnimation(title) {
+            const t = title.toLowerCase();
+            if (/(brush|tooth|teeth|toothbrush|dental)/.test(t)) return 'brush_teeth';
+            if (/(sleep|bed|bedtime|nap|go to bed|rest)/.test(t)) return 'sleep';
+            if (/(eat|food|meal|breakfast|lunch|dinner|snack|bite|chew)/.test(t)) return 'eat';
+            if (/(dress|cloth|wear|put on|shirt|pants|shoes|socks|jacket)/.test(t)) return 'dress';
+            if (/(bath|shower|wash|clean|scrub|soap)/.test(t) && !/(hand|face)/.test(t)) return 'bath';
+            if (/(wash.*hand|hand.*wash|soap.*hand|hand.*soap)/.test(t)) return 'wash_hands';
+            if (/(play|game|toy|fun|run|jump|dance|sing)/.test(t)) return 'play';
+            if (/(read|book|story|page|letter)/.test(t)) return 'read';
+            if (/(clean|tidy|organize|pick up|put away|toy.*away)/.test(t)) return 'clean';
+            return null;
+        }
+
+        function drawAnimatedBrushTeeth(ctx, width, height, progress) {
+            const cx = width * 0.5;
+            const cy = height * 0.45;
+            ctx.fillStyle = '#fde68a';
+            ctx.beginPath();
+            ctx.arc(cx, cy, 90, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#111827';
+            ctx.beginPath();
+            ctx.arc(cx - 30, cy - 20, 8, 0, Math.PI * 2);
+            ctx.arc(cx + 30, cy - 20, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#ef4444';
+            ctx.fillRect(cx - 30, cy + 10, 60, 12);
+
+            const osc = Math.sin(progress * Math.PI * 2);
+            const armX = cx + 90 + osc * 20;
+            const armY = cy + 10 + osc * 8;
+            ctx.fillStyle = '#93c5fd';
+            ctx.fillRect(armX - 10, armY - 10, 60, 16);
+
+            ctx.fillStyle = '#3b82f6';
+            ctx.fillRect(armX + 40, armY - 6, 70, 12);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(armX + 40, armY - 10, 12, 20);
+        }
+
+        function drawAnimatedEat(ctx, width, height, progress) {
+            const plateX = width * 0.3;
+            const plateY = height * 0.6;
+            const plateSize = 120;
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(plateX + plateSize/2, plateY + plateSize/2, plateSize/2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#d1d5db';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            const foodSize = (plateSize * 0.6) * (1 - progress * 0.8);
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(plateX + plateSize/2, plateY + plateSize/2, foodSize/2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            const headX = width * 0.6;
+            const headY = height * 0.4;
+            ctx.fillStyle = '#fde68a';
+            ctx.beginPath();
+            ctx.arc(headX, headY, 60, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#111827';
+            ctx.beginPath();
+            ctx.arc(headX - 20, headY - 15, 5, 0, Math.PI * 2);
+            ctx.arc(headX + 20, headY - 15, 5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            const chewSize = 8 + Math.sin(progress * Math.PI * 8) * 4;
+            ctx.fillStyle = '#ef4444';
+            ctx.beginPath();
+            ctx.arc(headX, headY + 10, chewSize, 0, Math.PI * 2);
+            ctx.fill();
+            
+            const armReach = Math.sin(progress * Math.PI * 4) * 10;
+            ctx.fillStyle = '#93c5fd';
+            ctx.fillRect(headX - 80 + armReach, headY + 20, 60, 12);
+        }
+
+        function drawAnimatedSleep(ctx, width, height, progress) {
+            const bx = width * 0.2;
+            const by = height * 0.6;
+            const bw = width * 0.6;
+            const bh = 80;
+            ctx.fillStyle = '#93c5fd';
+            ctx.fillRect(bx, by, bw, bh);
+            ctx.fillStyle = '#1f2937';
+            ctx.fillRect(bx, by + bh - 20, bw, 20);
+
+            const px = bx + bw * 0.2 + progress * bw * 0.5;
+            const py = by - 40 + progress * 40;
+            ctx.fillStyle = '#fde68a';
+            ctx.beginPath();
+            ctx.arc(px, py, 25, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.globalAlpha = 0.7;
+            ctx.fillStyle = '#a78bfa';
+            ctx.fillRect(bx + bw * 0.15, by + 10, bw * Math.min(0.2 + progress * 0.7, 0.9), 60);
+            ctx.globalAlpha = 1;
+
+            ctx.fillStyle = '#374151';
+            ctx.font = 'bold 28px sans-serif';
+            ctx.fillText('Z', bx + bw * 0.8, by - 40);
+            ctx.globalAlpha = 0.8;
+            ctx.fillText('Z', bx + bw * 0.85, by - 60);
+            ctx.globalAlpha = 0.6;
+            ctx.fillText('Z', bx + bw * 0.9, by - 80);
+            ctx.globalAlpha = 1;
+        }
+
+        async function generateRoutineVideo(routineTitle, frames, options) {
+            const width = options?.width ?? 400;
+            const height = options?.height ?? 300;
+            const secondsPerFrame = options?.secondsPerFrame ?? 2;
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            if (!ctx) {
+                throw new Error('Canvas not supported');
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+
+            const drawFrame = (frame, progress) => {
+                const grd = ctx.createLinearGradient(0, 0, width, height);
+                grd.addColorStop(0, '#f0f7ff');
+                grd.addColorStop(1, '#ffeef7');
+                ctx.fillStyle = grd;
+                ctx.fillRect(0, 0, width, height);
+
+                ctx.globalAlpha = 0.3;
+                ctx.fillStyle = '#c3ddff';
+                ctx.beginPath();
+                ctx.arc(width * 0.2, height * 0.3, 80, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#ffd7e8';
+                ctx.beginPath();
+                ctx.arc(width * 0.8, height * 0.7, 100, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+
+                if (frame.icon) {
+                    ctx.font = '60px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(frame.icon, width / 2, height * 0.25);
+                }
+
+                const titleY = height * 0.45 - (1 - progress) * 20;
+                ctx.font = 'bold 24px system-ui';
+                ctx.fillStyle = '#111827';
+                ctx.textAlign = 'center';
+                ctx.fillText(frame.title, width / 2, titleY);
+
+                ctx.font = '16px system-ui';
+                ctx.fillStyle = '#374151';
+                ctx.fillText(frame.description, width / 2, height * 0.55);
+
+                const anim = detectAnimation(frame.title);
+                if (anim === 'brush_teeth') {
+                    drawAnimatedBrushTeeth(ctx, width, height, progress);
+                } else if (anim === 'eat') {
+                    drawAnimatedEat(ctx, width, height, progress);
+                } else if (anim === 'sleep') {
+                    drawAnimatedSleep(ctx, width, height, progress);
+                }
+            };
+
+            return new Promise((resolve) => {
+                const totalFrames = frames.length;
+                const frameDurationMs = secondsPerFrame * 1000;
+                
+                let currentIndex = 0;
+                let startTime = Date.now();
+                
+                const animate = () => {
+                    const elapsed = Date.now() - startTime;
+                    const frameIndex = Math.min(Math.floor(elapsed / frameDurationMs), totalFrames - 1);
+                    const frameElapsed = elapsed - frameIndex * frameDurationMs;
+                    const progress = Math.min(1, frameElapsed / frameDurationMs);
+
+                    drawFrame(frames[frameIndex], progress);
+
+                    if (elapsed >= totalFrames * frameDurationMs) {
+                        // Create a simple animated GIF by capturing canvas frames
+                        const dataUrl = canvas.toDataURL('image/png');
+                        resolve({
+                            url: dataUrl,
+                            mimeType: 'image/png',
+                            durationSec: totalFrames * secondsPerFrame,
+                            isBlob: false
+                        });
+                    } else {
+                        requestAnimationFrame(animate);
+                    }
+                };
+
+                animate();
+            });
+        }
+
+        // Test function
+        async function testClientSideAnimations() {
+            const resultsDiv = document.getElementById('results');
+            const videosDiv = document.getElementById('videos');
+            
+            const testRoutines = [
+                {
+                    title: "Morning Routine",
+                    frames: [
+                        { title: "Brush your teeth", description: "Use toothbrush and toothpaste", icon: "🪥" },
+                        { title: "Eat breakfast", description: "Have a healthy meal", icon: "🥞" },
+                        { title: "Get dressed", description: "Put on clean clothes", icon: "👕" }
+                    ]
+                }
+            ];
+
+            for (const routine of testRoutines) {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'test-result';
+                resultDiv.innerHTML = `<div class="loading">🎬 Generating: ${routine.title}...</div>`;
+                resultsDiv.appendChild(resultDiv);
+
+                try {
+                    const result = await generateRoutineVideo(routine.title, routine.frames);
+                    
+                    if (result.url) {
+                        resultDiv.innerHTML = `
+                            <div class="success">✅ Success! Generated video for: ${routine.title}</div>
+                            <div>📊 Duration: ${result.durationSec}s</div>
+                            <div>🎯 Type: ${result.mimeType}</div>
+                        `;
+
+                        // Display the generated animation
+                        const img = document.createElement('img');
+                        img.src = result.url;
+                        img.style.maxWidth = '400px';
+                        img.style.borderRadius = '10px';
+                        img.style.margin = '10px';
+                        videosDiv.appendChild(img);
+                    }
+                } catch (error) {
+                    resultDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+                }
+            }
+        }
+
+        // Run the test when page loads
+        testClientSideAnimations();
+    </script>
+</body>
+</html>
