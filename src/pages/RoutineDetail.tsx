@@ -85,6 +85,7 @@ export default function RoutineDetail() {
   const [isPollingHd, setIsPollingHd] = useState(false);
   const [loadingRecordingByCard, setLoadingRecordingByCard] = useState<Record<string, boolean>>({});
   const demoMode = (String(import.meta.env.VITE_DEMO_MODE).toLowerCase() === 'true') || !isSupabaseConfigured;
+  const useDemoStore = demoMode || !user;
 
   const daysOfWeek = [
     { value: 0, label: "Sun" },
@@ -98,14 +99,14 @@ export default function RoutineDetail() {
 
   useEffect(() => {
     fetchRoutineData();
-  }, [id, demoMode]);
+  }, [id, useDemoStore]);
 
   useEffect(() => {
     if (!id) {
       setLastEngagementForRoutine(null);
       return;
     }
-    if (demoMode) {
+    if (useDemoStore) {
       const last = demoPracticeResults.getLastForRoutine(id);
       setLastEngagementForRoutine(last?.engagement_score ?? null);
     } else if (user?.id) {
@@ -115,14 +116,14 @@ export default function RoutineDetail() {
     } else {
       setLastEngagementForRoutine(null);
     }
-  }, [id, demoMode, user?.id]);
+  }, [id, useDemoStore, user?.id]);
 
   const handlePracticeComplete = async (metrics: PracticeMetrics) => {
     const currentCard = flashcards[currentStep];
     setLastPracticeMetrics(metrics);
     setShowPracticeModal(false);
     setShowSessionSummary(true);
-    if (demoMode) {
+    if (useDemoStore) {
       demoPracticeResults.add(
         metrics.engagementScore,
         metrics.motionScore,
@@ -147,7 +148,7 @@ export default function RoutineDetail() {
     if (!id) return;
 
     try {
-      if (demoMode) {
+      if (useDemoStore) {
         const { routine: r, flashcards: fc } = demoStore.getRoutineById(id);
         if (!r) throw new Error("Routine not found");
         setRoutine({
@@ -240,7 +241,7 @@ export default function RoutineDetail() {
         is_active: true,
       };
 
-      if (demoMode) {
+      if (useDemoStore) {
         demoStore.upsertSchedule(id, scheduleData);
       } else {
         if (existingSchedule) {
@@ -283,7 +284,9 @@ export default function RoutineDetail() {
         toast.error("No recording found for this step");
         return;
       }
-      if (!demoMode) {
+      if (useDemoStore) {
+        demoStore.setFlashcardVideoUrl(fc.id, url);
+      } else {
         const { error } = await supabase
           .from("flashcards")
           .update({ video_url: url })

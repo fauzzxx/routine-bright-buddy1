@@ -36,6 +36,30 @@ npm i
 npm run dev
 ```
 
+## Routine videos (recordings)
+
+Step-by-step routines (Morning, Bedtime) can show your own MP4 recordings instead of generated videos.
+
+1. **Put your MP4s in `api/recordings/`**  
+   Use the names from `api/recordings/README.md` (e.g. `brush_teeth.mp4`, `wake_up.mp4`, or the fallback names like `brushing your teeth.mp4`).
+
+2. **Run the API locally** (for "Use my recording" to work in dev):
+   ```sh
+   cd api
+   pip install -r requirements.txt
+   uvicorn index:parent --reload --host 0.0.0.0 --port 8000
+   ```
+   Keep this running in a separate terminal.
+
+3. **Run the frontend** (from the project root):
+   ```sh
+   npm run dev
+   ```
+   The app will proxy `/api` to the backend on port 8000. Open the app, add a routine from the library, open it, and click **"Use my recording"** on a step to attach the matching video.
+
+4. **Deploying (e.g. Vercel)**  
+   Include your MP4 files in `api/recordings/` in the repo so the serverless API can serve them.
+
 **Edit a file directly in GitHub**
 
 - Navigate to the desired file(s).

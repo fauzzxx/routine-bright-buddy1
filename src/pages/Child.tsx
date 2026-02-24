@@ -56,10 +56,11 @@ export default function Child() {
   const [lastEngagementForRoutine, setLastEngagementForRoutine] = useState<number | null>(null);
   const [loadingRecording, setLoadingRecording] = useState(false);
   const demoMode = (String(import.meta.env.VITE_DEMO_MODE).toLowerCase() === 'true') || !isSupabaseConfigured;
+  const useDemoStore = demoMode || !user;
 
   useEffect(() => {
     fetchScheduledRoutines();
-  }, [demoMode]);
+  }, [useDemoStore]);
 
   const currentRoutineId = routines[currentRoutineIndex]?.id;
   useEffect(() => {
@@ -67,7 +68,7 @@ export default function Child() {
       setLastEngagementForRoutine(null);
       return;
     }
-    if (demoMode) {
+    if (useDemoStore) {
       const last = demoPracticeResults.getLastForRoutine(currentRoutineId);
       setLastEngagementForRoutine(last?.engagement_score ?? null);
     } else if (user?.id) {
@@ -77,13 +78,13 @@ export default function Child() {
     } else {
       setLastEngagementForRoutine(null);
     }
-  }, [currentRoutineId, demoMode, user?.id]);
+  }, [currentRoutineId, useDemoStore, user?.id]);
 
   const handlePracticeComplete = async (metrics: PracticeMetrics) => {
     setLastPracticeMetrics(metrics);
     setShowPracticeModal(false);
     setShowSessionSummary(true);
-    if (demoMode) {
+    if (useDemoStore) {
       demoPracticeResults.add(
         metrics.engagementScore,
         metrics.motionScore,
@@ -106,9 +107,11 @@ export default function Child() {
 
   const fetchScheduledRoutines = async () => {
     try {
-      const currentDay = new Date().getDay();
-      if (demoMode) {
-        const items = demoStore.getAllScheduledRoutines().map(r => ({
+      if (useDemoStore) {
+        const list = demoStore.getAllScheduledRoutines().length > 0
+          ? demoStore.getAllScheduledRoutines()
+          : demoStore.getAllRoutinesWithFlashcards();
+        const items = list.map(r => ({
           id: r.id,
           title: r.title,
           icon: r.icon,
@@ -192,7 +195,9 @@ export default function Child() {
         toast.error("No recording found for this step");
         return;
       }
-      if (!demoMode) {
+      if (useDemoStore) {
+        demoStore.setFlashcardVideoUrl(card.id, url);
+      } else {
         await supabase.from("flashcards").update({ video_url: url }).eq("id", card.id);
       }
       const updatedRoutines = [...routines];

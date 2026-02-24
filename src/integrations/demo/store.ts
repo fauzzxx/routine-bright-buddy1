@@ -121,6 +121,15 @@ export const demoStore = {
     }
   },
 
+  setFlashcardVideoUrl(flashcardId: string, url: string | null) {
+    const data = read();
+    const f = data.flashcards.find(f => f.id === flashcardId);
+    if (f) {
+      f.video_url = url;
+      write(data);
+    }
+  },
+
   getScheduleByRoutineId(id: string): DemoSchedule | null {
     const data = read();
     return data.schedules.find(s => s.routine_id === id) || null;
@@ -165,16 +174,23 @@ export const demoStore = {
   getAllScheduledRoutines(): (DemoRoutine & { flashcards: DemoFlashcard[] })[] {
     const data = read();
     const activeSchedules = data.schedules.filter(s => s.is_active);
-    // Deduplicate routines if multiple schedules exist for same routine? 
-    // Usually 1 schedule per routine.
     const routines = activeSchedules
       .map(s => data.routines.find(r => r.id === s.routine_id))
       .filter((r): r is DemoRoutine => Boolean(r));
-
-    // De-dupe by id just in case
     const uniqueRoutines = Array.from(new Map(routines.map(item => [item.id, item])).values());
 
     return uniqueRoutines.map(r => ({
+      ...r,
+      flashcards: data.flashcards
+        .filter(f => f.routine_id === r.id)
+        .sort((a, b) => a.step_number - b.step_number),
+    }));
+  },
+
+  /** All routines with flashcards (for Child view when not logged in so something shows) */
+  getAllRoutinesWithFlashcards(): (DemoRoutine & { flashcards: DemoFlashcard[] })[] {
+    const data = read();
+    return data.routines.map(r => ({
       ...r,
       flashcards: data.flashcards
         .filter(f => f.routine_id === r.id)
