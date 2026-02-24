@@ -59,7 +59,10 @@ export default function Caregiver() {
 
   const fetchRoutines = async () => {
     try {
-      if (demoMode) {
+      // Use demo store when in demo mode OR when Supabase is configured but user is not signed in
+      // (routines added via "Add default routine" without login go to demo store)
+      const useDemoStore = demoMode || !user;
+      if (useDemoStore) {
         const items = demoStore.getRoutines().map(r => ({
           id: r.id,
           title: r.title,
@@ -92,7 +95,7 @@ export default function Caregiver() {
 
   useEffect(() => {
     fetchRoutines();
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (demoMode) {
@@ -116,8 +119,9 @@ export default function Caregiver() {
   const handleDeleteRoutine = async () => {
     if (!routineToDelete) return;
 
+    const useDemoStore = demoMode || !user;
     try {
-      if (demoMode) {
+      if (useDemoStore) {
         demoStore.deleteRoutine(routineToDelete);
         toast.success("Routine deleted successfully");
         setRoutines(routines.filter(r => r.id !== routineToDelete));
