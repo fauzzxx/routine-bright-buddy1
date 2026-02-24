@@ -9,48 +9,63 @@ import logging
 
 RECORDINGS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "recordings")
 
-# Keyword (in prompt) -> filename in api/recordings. Use exact filenames as in the folder.
-# Brushing teeth: morning & night routine both use "brushing your teeth.mp4"
-# Changing clothes (morning), Eating breakfast, Night clothes, Reading a book (night), Waking up (morning)
+# Preferred: snake_case filenames (brush_teeth.mp4, wake_up.mp4, etc.).
+# Fallbacks: if preferred file is missing, try these (e.g. "brushing your teeth.mp4").
+FALLBACK_FILES = {
+    "brush_teeth.mp4": "brushing your teeth.mp4",
+    "wake_up.mp4": "waking up.mp4",
+    "eating_breakfast.mp4": "Eating breakfast.mp4",
+    "get_dressed.mp4": "changing clothes.mp4",
+    "reading_book.mp4": "reading a book.mp4",
+    "wash_hands.mp4": None,  # no fallback; add wash_hands.mp4 to folder
+    "night_clothes.mp4": "night clothes.mp4",
+}
+
+# Keyword (in prompt) -> primary filename in api/recordings. Matches README.
 PROMPT_TO_VIDEO = {
-    # Brushing teeth – morning and night routine
-    "brushing teeth": "brushing your teeth.mp4",
-    "brush teeth": "brushing your teeth.mp4",
-    "brush your teeth": "brushing your teeth.mp4",
-    "teeth": "brushing your teeth.mp4",
-    "brush": "brushing your teeth.mp4",
-    "tooth": "brushing your teeth.mp4",
-    # Changing clothes – morning
-    "changing clothes": "changing clothes.mp4",
-    "change clothes": "changing clothes.mp4",
-    "get dressed": "changing clothes.mp4",
-    "put on clothes": "changing clothes.mp4",
-    "dress": "changing clothes.mp4",
-    "wear": "changing clothes.mp4",
-    "clothes": "changing clothes.mp4",
-    # Eating breakfast
-    "eating breakfast": "Eating breakfast.mp4",
-    "eat breakfast": "Eating breakfast.mp4",
-    "breakfast": "Eating breakfast.mp4",
-    "eat": "Eating breakfast.mp4",
-    "lunch": "Eating breakfast.mp4",
-    "dinner": "Eating breakfast.mp4",
-    # Night clothes
-    "night clothes": "night clothes.mp4",
-    "pajamas": "night clothes.mp4",
-    "put on pajamas": "night clothes.mp4",
-    "night": "night clothes.mp4",
-    # Reading a book – night
-    "reading a book": "reading a book.mp4",
-    "read a book": "reading a book.mp4",
-    "read": "reading a book.mp4",
-    "book": "reading a book.mp4",
-    "story": "reading a book.mp4",
-    # Waking up – morning
-    "waking up": "waking up.mp4",
-    "wake up": "waking up.mp4",
-    "wake": "waking up.mp4",
-    "morning": "waking up.mp4",
+    # Brush teeth
+    "brushing teeth": "brush_teeth.mp4",
+    "brush teeth": "brush_teeth.mp4",
+    "brush your teeth": "brush_teeth.mp4",
+    "teeth": "brush_teeth.mp4",
+    "brush": "brush_teeth.mp4",
+    "tooth": "brush_teeth.mp4",
+    # Wake up / morning
+    "waking up": "wake_up.mp4",
+    "wake up": "wake_up.mp4",
+    "wake": "wake_up.mp4",
+    "morning": "wake_up.mp4",
+    # Wash hands / face
+    "wash hands": "wash_hands.mp4",
+    "wash face": "wash_hands.mp4",
+    "washing hands": "wash_hands.mp4",
+    "washing face": "wash_hands.mp4",
+    # Get dressed / clothes (morning)
+    "changing clothes": "get_dressed.mp4",
+    "change clothes": "get_dressed.mp4",
+    "get dressed": "get_dressed.mp4",
+    "put on clothes": "get_dressed.mp4",
+    "dress": "get_dressed.mp4",
+    "wear": "get_dressed.mp4",
+    "clothes": "get_dressed.mp4",
+    # Eating
+    "eating breakfast": "eating_breakfast.mp4",
+    "eat breakfast": "eating_breakfast.mp4",
+    "breakfast": "eating_breakfast.mp4",
+    "eat": "eating_breakfast.mp4",
+    "lunch": "eating_breakfast.mp4",
+    "dinner": "eating_breakfast.mp4",
+    # Night clothes / pajamas
+    "night clothes": "night_clothes.mp4",
+    "pajamas": "night_clothes.mp4",
+    "put on pajamas": "night_clothes.mp4",
+    "night": "night_clothes.mp4",
+    # Reading
+    "reading a book": "reading_book.mp4",
+    "read a book": "reading_book.mp4",
+    "read": "reading_book.mp4",
+    "book": "reading_book.mp4",
+    "story": "reading_book.mp4",
 }
 
 
@@ -66,13 +81,19 @@ def resolve_recording(prompt: str, out_dir: str, filename_prefix: str = "animati
     prompt_lower = prompt.lower().strip()
     matched_file = None
 
-    # 1) Explicit keyword mapping (longer phrases first)
+    # 1) Explicit keyword mapping (longer phrases first); try primary then fallback filename
     for keyword, video_file in sorted(PROMPT_TO_VIDEO.items(), key=lambda x: -len(x[0])):
         if keyword in prompt_lower:
             candidate = os.path.join(RECORDINGS_DIR, video_file)
             if os.path.isfile(candidate):
                 matched_file = video_file
                 break
+            fallback = FALLBACK_FILES.get(video_file)
+            if fallback:
+                candidate_fb = os.path.join(RECORDINGS_DIR, fallback)
+                if os.path.isfile(candidate_fb):
+                    matched_file = fallback
+                    break
     if matched_file:
         src = os.path.join(RECORDINGS_DIR, matched_file)
         ts = int(time.time())

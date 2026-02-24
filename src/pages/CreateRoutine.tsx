@@ -197,7 +197,22 @@ export default function CreateRoutine() {
         );
       } else {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error("Not authenticated");
+        if (!user) {
+          // Not signed in: add to demo store so user can still use routines and step videos
+          const created = demoStore.addRoutine(
+            {
+              title: routine.title,
+              category: routine.category,
+              icon: routine.icon,
+              description: routine.description,
+              video_url: null,
+            },
+            routine.flashcards
+          );
+          toast.success("Default routine added successfully!");
+          navigate("/caregiver");
+          return;
+        }
 
         const { data: newRoutine, error: routineError } = await supabase
           .from("routines")
@@ -266,7 +281,22 @@ export default function CreateRoutine() {
         );
       } else {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error("Not authenticated");
+        if (!user) {
+          // Not signed in: add to demo store so user can still use routines and step videos
+          demoStore.addRoutine(
+            {
+              title: routineName,
+              category: routineCategory,
+              icon: routineIcon,
+              description: routineDescription || null,
+              video_url: videoSource === "youtube" ? (videoUrl || null) : null,
+            },
+            flashcards.filter(f => f.title.trim())
+          );
+          toast.success("Routine created successfully!");
+          navigate("/caregiver");
+          return;
+        }
 
         const { data: routine, error: routineError } = await supabase
           .from("routines")
